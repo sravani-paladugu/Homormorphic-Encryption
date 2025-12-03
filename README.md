@@ -64,4 +64,46 @@ This file demonstrates the full Homomorphic Encryption lifecycle where the keys 
 •	The homomorphic operation is performed by auto ciphertextMult = cryptoContext->EvalMult(ciphertext1, ciphertext2);.
 
 •	The example demonstrates element-wise multiplication: ([5, 6, 7, 8]).([2, 3, 4, 5]), yielding the expected decrypted result [10, 18, 28, 40].
+________________________________________
+**File 4: key_management.h (The Interface)**
+This file acts as the public interface (like a header file) for the key management module. It tells the rest of the application (specifically depth-bgvrns_manualkey_6.cpp) exactly what functions are available and what data they use, without revealing the implementation details.
 
+**Content: **Contains only the declarations (prototypes) for the functions.
+
+**Key Functions:**
+
+KeyPair<DCRTPoly> GenerateKeys(CryptoContext<DCRTPoly> context)
+
+void SerializeKeys(CryptoContext<DCRTPoly> context, const KeyPair<DCRTPoly>& keyPair)
+
+ **File 5. key_management.cpp (The Key Server/Offline Process)**
+This file contains the implementation of the key management logic. It represents the secure, offline process where a trusted party generates the necessary cryptographic keys.
+
+**Key Functions:**
+
+**GenerateKeys**: This function calls context->KeyGen() and context->EvalMultKeysGen() to create the Public Key, Secret Key, and Evaluation Keys (needed for homomorphic multiplication).
+
+**SerializeKeys**: This function saves all the generated keys to disk files using OpenFHE's serialization features. This is how the keys are transferred (in a real-world scenario, securely) to the application environment.
+
+         secret_key.json
+
+         public_key.json
+
+         mult_key.json
+
+**File 6: depth-bgvrns_manualkey_6.cpp (The Main Application/Client)**
+This is the main executable file containing the main() function. It separates the execution into two distinct phases: Key Generation/Serialization (using the imported functions) and Application Execution.
+
+**Key Generation Phase** (Offline/Simulation):
+
+It calls SetupContext() to define the HE parameters. It calls the external functions: GenerateKeys() and SerializeKeys().
+
+**Application Phase** (Online):
+
+It performs Deserialization (loading) of the keys from the disk files (simulating the client receiving keys).
+
+It uses the loaded Public Key for Encryption.
+
+It uses the loaded Evaluation Keys implicitly during the homomorphic computation (EvalMult).
+
+It uses the loaded Secret Key for Decryption to reveal the result.
